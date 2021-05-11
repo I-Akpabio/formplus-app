@@ -1,9 +1,8 @@
-import {CATRGORY_FILTER, DATE_FILTER, ORDER_FILTER} from "../utils/constants";
-import { useState } from 'react';
+import {CATRGORY_FILTER, DATE_FILTER, ORDER_FILTER, DEFAULT, ASCENDING, DESCENDING} from "../utils/constants";
 import { debounce } from 'lodash' ;
 
-const FilterBar = ({ changeFilter }) => {
-    const onSearchChange =  debounce(e => changeFilter('search', e.target.value), 300); 
+const FilterBar = ({ changeFilter, date, order, search }) => {
+    const onSearchChange =  e => changeFilter('search', e.target.value) 
 
     const onCategoryChange = e => changeFilter(CATRGORY_FILTER, e.target.value)
     const onDateChange = e => changeFilter(DATE_FILTER, e.target.value)
@@ -18,6 +17,7 @@ const FilterBar = ({ changeFilter }) => {
                         name="searchQueryInput"
                         placeholder="Search"
                         onChange={onSearchChange}
+                        value={search}
                     />
                     <button
                         id="searchQuerySubmit"
@@ -54,20 +54,20 @@ const FilterBar = ({ changeFilter }) => {
                     <div className="form-group col">
                         <fieldset>
                             <legend>Date</legend>
-                            <select className="filter" onChange={onDateChange}>
-                                <option value="Default">Default</option>
-                                <option value="Ascending">Ascending</option>
-                                <option value="Descending">Descending</option>
+                            <select className="filter" onChange={onDateChange} value={date}>
+                                <option value={DEFAULT}>Default</option>
+                                <option value={ASCENDING}>Ascending</option>
+                                <option value={DESCENDING}>Descending</option>
                             </select>
                         </fieldset>
                     </div>
                     <div className="form-group col">
                        <fieldset>
-                            <legend>Order</legend>
-                            <select className="filter" onChange={onOrderChange}>
-                                <option value="Default">Default</option>
-                                <option value="Ascending">Ascending</option>
-                                <option value="Descending">Descending</option>
+                            <legend>Alphabetically</legend>
+                            <select className="filter" onChange={onOrderChange} value={order}>
+                                <option value={DEFAULT}>Default</option>
+                                <option value={ASCENDING}>Ascending</option>
+                                <option value={DESCENDING}>Descending</option>
                             </select>
                         </fieldset>
                     </div>

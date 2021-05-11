@@ -13,13 +13,12 @@ const Pagination = ({ page, total, limit, changePage }) => {
         changePage(page + 1) 
     };
 
-    const mainImgStyle = { width: '90px', height: '80px'};
-    const backImgStyle = page === 1 ? Object.assign({}, mainImgStyle, {display: 'none'}) : mainImgStyle;
-    const forwardImgStyle = page === totalPage ? Object.assign({}, mainImgStyle, {display: 'none'}):mainImgStyle;
+    const backImgStyle = page === 1 ? {display: 'none'} : {};
+    const forwardImgStyle = page === totalPage ? {display: 'none'} : {};
 
 
     return (
-       <div className="flex-grid-thirds info" style={{marginTop: "1.0rem"}}>
+       <div className="flex-grid-thirds pagination" style={{marginTop: "1.0rem"}}>
            <img onClick={nextAction} className="Absolute-Center" style={forwardImgStyle} src="https://www.vippng.com/png/detail/3-39259_right-arrow-right-arrow-icon-svg.png" />
            <img onClick={previousAction} className="Absolute-Center rotate" style={backImgStyle} src="https://www.vippng.com/png/detail/3-39259_right-arrow-right-arrow-icon-svg.png" />
 

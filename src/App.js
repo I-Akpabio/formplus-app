@@ -1,40 +1,60 @@
-import { useState, useEffect } from 'react';
-import './App.css';
-import TemplateList from "./components/TemplateList"
-import FilterBar from "./components/FilterBar"
+import React,{ useState, useEffect } from "react";
+import "./App.css";
+import TemplateList from "./components/TemplateList";
+import FilterBar from "./components/FilterBar";
 import Pagination from "./components/Pagination";
 
-import axios from 'axios'
+import axios from "axios";
 
-import { searchFilter, orderFilter, categoryFilter } from './utils/filter';
-import { paginate } from './utils/paginate';
-import { CATRGORY_FILTER, DATE_FILTER, ORDER_FILTER } from './utils/constants';
+import {
+  searchFilter,
+  orderFilter,
+  categoryFilter,
+  dateFilter,
+} from "./utils/filter";
+import { paginate } from "./utils/paginate";
+import { CATRGORY_FILTER, DATE_FILTER, ORDER_FILTER } from "./utils/constants";
 
 function App() {
-  const [ data, setData] = useState([]);
-  const [ filteredData, setFilteredData] = useState([]);
-  const [ paginatedData, setPaginatedData] = useState([]);
-  const [ page, setPage] = useState(1);
-  const [ limit, setLimit] = useState(10);
+  const [data, setData] = useState([]); // The full set of data gotten from the server
+  const [cache, setCache] = useState({}); // A cache for different category filter results
+
+  // A cache for the sorted result by date or alphabetically
+  const [sortedData, setSortedData] = useState([]); 
+
+  // The final datset used by the U.I all filter, sorts and potential search have been run
+  // the data displayed on the page is a subset of this array
+  const [filteredData, setFilteredData] = useState([]);
+  // The dataset displayed on the page of 10 results
+  const [paginatedData, setPaginatedData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [searchActive, setSearchActive] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [toggleFilter, setToggleFilter] = useState(true);
 
   const [filter, setFilter] = useState({
-      search: "",
-      [CATRGORY_FILTER]: "All",
-      [DATE_FILTER]: "Default",
-      [ORDER_FILTER]: "Default"
+    search: "",
+    [CATRGORY_FILTER]: "All",
+    [DATE_FILTER]: "Default",
+    [ORDER_FILTER]: "Default",
   });
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios(
-        'http://localhost/templates',
-      );
-     
-      setData(result.data)
-      setFilteredData(result.data)
-      setPaginatedData(paginate(1, 10, result.data))
+      try {
+        const result = await axios(
+          "https://front-end-task-dot-fpls-dev.uc.r.appspot.com/api/v1/public/task_templates"
+        );
+        setData(result.data);
+        setFilteredData(result.data);
+        setSortedData(result.data);
+        setLoading(false);
+      } catch (err) {
+        alert("fail" + err);
+      }
     };
- 
+
     fetchData();
   }, []);
 
@@ -44,79 +64,168 @@ function App() {
    */
   useEffect(() => {
     setPage(1);
-    setPaginatedData(paginate(1, limit, filteredData))
-    window.test = filteredData
-  }, [filteredData])
+    setPaginatedData(paginate(1, 10, filteredData));
+    window.test = filteredData;
+  }, [filteredData]);
 
   const changeFilter = (key, value) => {
-    const object = {[key]: value}
-    const newFilter = Object.assign({}, filter, object)
+    const object = { [key]: value };
+    const newFilter = Object.assign({}, filter, object);
 
-    setFilter(newFilter)
-    updateFilter(key, newFilter)
-  }
+    setFilter(newFilter);
+    updateFilter(key, newFilter);
+  };
 
+  const isEmpty = (arr) => {
+    if (arr === null || arr === undefined || arr.length === 0) return true;
+    else return false;
+  };
+
+  /**
+   * @param key the action to perform
+   * @param filter the new filter object values
+   */
   const updateFilter = (key, filter) => {
     let newData;
+    let dataToSort;
 
-    switch( key ) {
+    const term = filter["search"];
+
+    switch (key) {
       case "search":
-        newData = searchFilter(filter['search'], filteredData);
-        console.log(newData);
-      break;
+        newData = searchFilter(term, sortedData);
+        setSearchActive(term === "" ? false : true);
+        break;
 
       case CATRGORY_FILTER:
-        newData = categoryFilter(filter[CATRGORY_FILTER], data);
-      break;
+        const categoryValue = filter[CATRGORY_FILTER];
+
+        setLoading(true);
+
+        newData = categoryFilter(categoryValue, data);
+
+        // Cache the default category filter array
+        const object = { [categoryValue]: newData };
+        setCache(Object.assign({}, cache, object));
+
+        // Category Change reset search and all sort filters
+        setSearchActive(false)
+        setFilter(
+          Object.assign({}, filter, {
+            search: "",
+            [DATE_FILTER]: "Default",
+            [ORDER_FILTER]: "Default",
+          })
+        );
+
+        break;
 
       case DATE_FILTER:
-       newData = orderFilter(filter, data);
-      break;
+        if (filter[DATE_FILTER] == "Default") {
+          newData = cache[CATRGORY_FILTER] || data;
+          break;
+        }
+        dataToSort = isEmpty(cache[CATRGORY_FILTER]) 
+           ? sortedData : cache[CATRGORY_FILTER];
+
+        newData = dateFilter(filter[DATE_FILTER], dataToSort);
+        setFilter( Object.assign({}, filter, { [ORDER_FILTER]: "Default" }  ) ) 
+
+        // If a search is active run it after sort
+        if (searchActive) {
+          newData = searchFilter(term, newData);
+        }
+        break;
       case ORDER_FILTER:
-        newData = orderFilter(filter, data);
-      break;
-      default: return;
+        if (filter[ORDER_FILTER] == "Default") {
+          newData = cache[CATRGORY_FILTER] || data;
+          break;
+        }
+        dataToSort = isEmpty(cache[CATRGORY_FILTER])
+          ? sortedData : cache[CATRGORY_FILTER];
+
+        newData = orderFilter(filter[ORDER_FILTER], dataToSort);
+        setFilter( Object.assign({}, filter, { [DATE_FILTER]: "Default" } ) ) 
+
+        if (searchActive) {
+          newData = searchFilter(term, newData);
+        }
+        break;
+      default:
+        return;
     }
-    
+
     setFilteredData(newData);
-  }
+    setLoading(false);
+    if(key !== "search") {
+      setSortedData(newData)
+    }
+  };
 
   const changePage = (page) => {
     setPage(page);
     setPaginatedData(paginate(page, limit, filteredData));
-  }
+  };
 
-   return (
-     <div>
-         <nav>
-    <ul class="main-nav">
-      <li><a href="/test">Templates</a></li>
-      <li><a href="/test">About</a></li>
-      <li><a href="/test">Products</a></li>
-      <li><a href="/test">Our Team</a></li>
-      <li class="push"><a href="">Contact</a></li>
-    </ul>
-  </nav>
+  const toggleFilterAction = (e) => setToggleFilter(e.target.checked);
 
-  <div style={{marginTop: "2rem"}} className="container">
+  return (
+    <div>
+      <nav>
+        <ul className="main-nav">
+          <li>
+            <a href="/test">Templates</a>
+          </li>
+          <li className="other-links">
+            <a href="/test">About</a>
+          </li>
+          <li className="other-links">
+            <a href="/test">Products</a>
+          </li>
+          <li className="push">
+            <div style={{ color: "white", marginRight: '5px' }}>
+              Toggle Filter
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={toggleFilter}
+                  onChange={toggleFilterAction}
+                />{" "}
+                <div></div>
+              </label>
+            </div>
+          </li>
+        </ul>
+      </nav>
 
-      <FilterBar changeFilter={changeFilter} />
+      <div className="container">
+        {toggleFilter ? (
+          <FilterBar
+            changeFilter={changeFilter}
+            date={filter[DATE_FILTER]}
+            order={filter[ORDER_FILTER]}
+            search={filter["search"]}
+          />
+        ) : null}
 
-      <h3>{filter[CATRGORY_FILTER]} Templates</h3>
+        <h3 className="headerText">
+          {searchActive ? `Search "${filter['search']}" in ` : null}
+          {filter[CATRGORY_FILTER]} Templates
+          
+        </h3>
+        {/*<button onClick={()=>console.log(cache)}>Show Cache</button>*/}
 
-      <TemplateList data={paginatedData} />
-
-     
-
-    </div> 
-     <Pagination 
-        page={page} 
-        total={filteredData.length} 
-        limit={limit} 
+        {loading ? <p>Loading...</p> : <TemplateList data={paginatedData} />}
+      </div>
+      {!loading ? 
+      <Pagination
+        page={page}
+        total={filteredData.length}
+        limit={limit}
         changePage={changePage}
       />
-     </div>
-    
+      : null}
+    </div>
   );
 }
 
