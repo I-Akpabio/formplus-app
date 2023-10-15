@@ -1,5 +1,4 @@
 {
-  "homepage": "http://I-Akpabio.github.io/formplus-app",
   "name": "formplus-app",
   "version": "0.1.0",
   "homepage": "https://I-Akpabio.github.io/formplus-app",
@@ -16,6 +15,7 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
