@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/formplus-app/static/css/main.e590e6d9.chunk.css",
+    "main.js": "/formplus-app/static/js/main.5a0324ca.chunk.js",
+    "main.js.map": "/formplus-app/static/js/main.5a0324ca.chunk.js.map",
+    "runtime-main.js": "/formplus-app/static/js/runtime-main.eb9c4488.js",
+    "runtime-main.js.map": "/formplus-app/static/js/runtime-main.eb9c4488.js.map",
+    "static/js/2.96c0701b.chunk.js": "/formplus-app/static/js/2.96c0701b.chunk.js",
+    "static/js/2.96c0701b.chunk.js.map": "/formplus-app/static/js/2.96c0701b.chunk.js.map",
+    "static/js/3.6f677fdc.chunk.js": "/formplus-app/static/js/3.6f677fdc.chunk.js",
+    "static/js/3.6f677fdc.chunk.js.map": "/formplus-app/static/js/3.6f677fdc.chunk.js.map",
+    "index.html": "/formplus-app/index.html",
+    "static/css/main.e590e6d9.chunk.css.map": "/formplus-app/static/css/main.e590e6d9.chunk.css.map",
+    "static/js/2.96c0701b.chunk.js.LICENSE.txt": "/formplus-app/static/js/2.96c0701b.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.eb9c4488.js",
+    "static/js/2.96c0701b.chunk.js",
+    "static/css/main.e590e6d9.chunk.css",
+    "static/js/main.5a0324ca.chunk.js"
+  ]
+}
